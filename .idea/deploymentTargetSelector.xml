@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="tadam project">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-04-23T16:52:22.194874Z">
+        <DropdownSelection timestamp="2026-04-23T17:35:35.866027Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/cosmo/.android/avd/Medium_Phone.avd" />
