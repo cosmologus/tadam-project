@@ -48,6 +48,17 @@ class ConverterViewModel(
         }
     }
 
+    fun swapCurrencies() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                fromCurrency = currentState.toCurrency,
+                toCurrency = currentState.fromCurrency,
+                result = "",
+                error = null
+            )
+        }
+    }
+
     fun updateAmount(amount: String) {
         val isValidInput = amount.all { character ->
             character.isDigit() || character == '.'

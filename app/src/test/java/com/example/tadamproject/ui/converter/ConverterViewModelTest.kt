@@ -71,6 +71,20 @@ class ConverterViewModelTest {
         assertEquals("Error", viewModel.uiState.value.error)
         assertTrue(viewModel.uiState.value.result.isEmpty())
     }
+
+    @Test
+    fun swapCurrencies_exchangesFromAndToAndClearsResult() = runTest {
+        val viewModel = ConverterViewModel(FakeCurrencyRepository())
+
+        viewModel.updateAmount("10")
+        viewModel.convert()
+        advanceUntilIdle()
+        viewModel.swapCurrencies()
+
+        assertEquals("EUR", viewModel.uiState.value.fromCurrency)
+        assertEquals("USD", viewModel.uiState.value.toCurrency)
+        assertTrue(viewModel.uiState.value.result.isEmpty())
+    }
 }
 
 private class FakeCurrencyRepository(
