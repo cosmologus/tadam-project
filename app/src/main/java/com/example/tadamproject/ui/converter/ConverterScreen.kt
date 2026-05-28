@@ -73,7 +73,8 @@ private val accentPurple = Color(0xFF6757A7)
 @Composable
 fun ConverterScreen(
     viewModel: ConverterViewModel,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onOpenHistory: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -107,7 +108,10 @@ fun ConverterScreen(
             }
 
             item {
-                RecentSection(history = uiState.history.take(3))
+                RecentSection(
+                    history = uiState.history.take(3),
+                    onOpenHistory = onOpenHistory
+                )
             }
         }
     }
@@ -443,7 +447,10 @@ private fun ResultSection(uiState: ConverterUiState) {
 }
 
 @Composable
-private fun RecentSection(history: List<ConversionHistory>) {
+private fun RecentSection(
+    history: List<ConversionHistory>,
+    onOpenHistory: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -470,6 +477,7 @@ private fun RecentSection(history: List<ConversionHistory>) {
                 )
                 Text(
                     text = "See All",
+                    modifier = Modifier.clickable(onClick = onOpenHistory),
                     color = accentPurple,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold

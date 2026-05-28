@@ -9,10 +9,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.tadamproject.ui.AppViewModelProvider
 import com.example.tadamproject.ui.converter.ConverterScreen
 import com.example.tadamproject.ui.converter.ConverterViewModel
+import com.example.tadamproject.ui.converter.HistoryScreen
 import com.example.tadamproject.ui.settings.SettingsScreen
 import com.example.tadamproject.ui.settings.SettingsViewModel
 
 const val CONVERTER_ROUTE = "converter"
+const val HISTORY_ROUTE = "history"
 const val SETTINGS_ROUTE = "settings"
 
 @Composable
@@ -28,7 +30,16 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             val viewModel: ConverterViewModel = viewModel(factory = AppViewModelProvider.Factory)
             ConverterScreen(
                 viewModel = viewModel,
-                onOpenSettings = { navController.navigate(SETTINGS_ROUTE) }
+                onOpenSettings = { navController.navigate(SETTINGS_ROUTE) },
+                onOpenHistory = { navController.navigate(HISTORY_ROUTE) }
+            )
+        }
+
+        composable(HISTORY_ROUTE) {
+            val viewModel: ConverterViewModel = viewModel(factory = AppViewModelProvider.Factory)
+            HistoryScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
             )
         }
 
