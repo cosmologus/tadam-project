@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,14 +62,6 @@ import java.util.Date
 import java.util.Locale
 
 private val currencies = listOf("USD", "EUR", "GBP", "RON", "JPY", "CHF")
-private val screenBackground = Color(0xFFF2F3F7)
-private val cardBackground = Color.White
-private val fieldBackground = Color(0xFFF8F9FB)
-private val textPrimary = Color(0xFF1F2937)
-private val textStrong = Color(0xFF111827)
-private val textMuted = Color(0xFF6B7280)
-private val textSoft = Color(0xFF9CA3AF)
-private val accentPurple = Color(0xFF6757A7)
 
 @Composable
 fun ConverterScreen(
@@ -77,24 +70,26 @@ fun ConverterScreen(
     onOpenHistory: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val colors = converterColors()
 
     Scaffold(
-        containerColor = screenBackground
+        containerColor = colors.background
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(screenBackground),
+                .background(colors.background),
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
             item {
-                Header(onOpenSettings = onOpenSettings)
+                Header(colors = colors, onOpenSettings = onOpenSettings)
             }
 
             item {
                 ConversionCard(
                     uiState = uiState,
+                    colors = colors,
                     onFromCurrencySelected = viewModel::updateFromCurrency,
                     onToCurrencySelected = viewModel::updateToCurrency,
                     onAmountChange = viewModel::updateAmount,
@@ -104,12 +99,13 @@ fun ConverterScreen(
             }
 
             item {
-                ResultSection(uiState = uiState)
+                ResultSection(uiState = uiState, colors = colors)
             }
 
             item {
                 RecentSection(
                     history = uiState.history.take(3),
+                    colors = colors,
                     onOpenHistory = onOpenHistory
                 )
             }
@@ -118,7 +114,10 @@ fun ConverterScreen(
 }
 
 @Composable
-private fun Header(onOpenSettings: () -> Unit) {
+private fun Header(
+    colors: ConverterColors,
+    onOpenSettings: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -128,7 +127,7 @@ private fun Header(onOpenSettings: () -> Unit) {
     ) {
         Text(
             text = "Currency Exchange",
-            color = textPrimary,
+            color = colors.textPrimary,
             fontSize = 30.sp,
             lineHeight = 36.sp,
             fontWeight = FontWeight.ExtraBold
@@ -138,7 +137,7 @@ private fun Header(onOpenSettings: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = "Settings",
-                tint = Color(0xFF4B5563),
+                tint = colors.icon,
                 modifier = Modifier.size(30.dp)
             )
         }
@@ -148,6 +147,7 @@ private fun Header(onOpenSettings: () -> Unit) {
 @Composable
 private fun ConversionCard(
     uiState: ConverterUiState,
+    colors: ConverterColors,
     onFromCurrencySelected: (String) -> Unit,
     onToCurrencySelected: (String) -> Unit,
     onAmountChange: (String) -> Unit,
@@ -158,8 +158,8 @@ private fun ConversionCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .shadow(8.dp, RoundedCornerShape(28.dp), ambientColor = Color(0x12000000)),
-        colors = CardDefaults.cardColors(containerColor = cardBackground),
+            .shadow(8.dp, RoundedCornerShape(28.dp), ambientColor = colors.shadow),
+        colors = CardDefaults.cardColors(containerColor = colors.cardBackground),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -170,6 +170,7 @@ private fun ConversionCard(
             CurrencyPairSelector(
                 fromCurrency = uiState.fromCurrency,
                 toCurrency = uiState.toCurrency,
+                colors = colors,
                 onFromCurrencySelected = onFromCurrencySelected,
                 onToCurrencySelected = onToCurrencySelected,
                 onSwapCurrencies = onSwapCurrencies
@@ -178,6 +179,7 @@ private fun ConversionCard(
             AmountInput(
                 amount = uiState.amount,
                 error = uiState.error,
+                colors = colors,
                 onAmountChange = onAmountChange
             )
 
@@ -189,9 +191,9 @@ private fun ConversionCard(
                 enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = accentPurple,
+                    containerColor = colors.accent,
                     contentColor = Color.White,
-                    disabledContainerColor = accentPurple.copy(alpha = 0.55f),
+                    disabledContainerColor = colors.accent.copy(alpha = 0.55f),
                     disabledContentColor = Color.White
                 ),
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
@@ -218,13 +220,14 @@ private fun ConversionCard(
 private fun CurrencyPairSelector(
     fromCurrency: String,
     toCurrency: String,
+    colors: ConverterColors,
     onFromCurrencySelected: (String) -> Unit,
     onToCurrencySelected: (String) -> Unit,
     onSwapCurrencies: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = fieldBackground,
+        color = colors.fieldBackground,
         shape = RoundedCornerShape(24.dp),
         tonalElevation = 0.dp
     ) {
@@ -235,6 +238,7 @@ private fun CurrencyPairSelector(
             CurrencyDropdown(
                 selectedCurrency = fromCurrency,
                 onCurrencySelected = onFromCurrencySelected,
+                colors = colors,
                 modifier = Modifier.weight(1f)
             )
 
@@ -243,12 +247,12 @@ private fun CurrencyPairSelector(
                 modifier = Modifier
                     .size(56.dp)
                     .shadow(5.dp, CircleShape)
-                    .background(cardBackground, CircleShape)
+                    .background(colors.cardBackground, CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.SwapHoriz,
                     contentDescription = "Swap currencies",
-                    tint = accentPurple,
+                    tint = colors.accent,
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -256,6 +260,7 @@ private fun CurrencyPairSelector(
             CurrencyDropdown(
                 selectedCurrency = toCurrency,
                 onCurrencySelected = onToCurrencySelected,
+                colors = colors,
                 modifier = Modifier.weight(1f),
                 alignment = Alignment.End
             )
@@ -267,6 +272,7 @@ private fun CurrencyPairSelector(
 private fun CurrencyDropdown(
     selectedCurrency: String,
     onCurrencySelected: (String) -> Unit,
+    colors: ConverterColors,
     modifier: Modifier = Modifier,
     alignment: Alignment.Horizontal = Alignment.Start
 ) {
@@ -282,7 +288,7 @@ private fun CurrencyDropdown(
         ) {
             Text(
                 text = selectedCurrency,
-                color = textPrimary,
+                color = colors.textPrimary,
                 fontSize = 25.sp,
                 fontWeight = FontWeight.ExtraBold
             )
@@ -290,7 +296,7 @@ private fun CurrencyDropdown(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
-                tint = textSoft,
+                tint = colors.textSoft,
                 modifier = Modifier.size(26.dp)
             )
         }
@@ -325,12 +331,13 @@ private fun CurrencyDropdown(
 private fun AmountInput(
     amount: String,
     error: String?,
+    colors: ConverterColors,
     onAmountChange: (String) -> Unit
 ) {
     Column {
         Text(
             text = "Amount",
-            color = textMuted,
+            color = colors.textMuted,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
@@ -341,7 +348,7 @@ private fun AmountInput(
             value = amount,
             onValueChange = onAmountChange,
             textStyle = TextStyle(
-                color = textStrong,
+                color = colors.textStrong,
                 fontSize = 54.sp,
                 lineHeight = 60.sp,
                 fontWeight = FontWeight.ExtraBold
@@ -354,7 +361,7 @@ private fun AmountInput(
                     if (amount.isBlank()) {
                         Text(
                             text = "0",
-                            color = textSoft,
+                            color = colors.textSoft,
                             fontSize = 54.sp,
                             lineHeight = 60.sp,
                             fontWeight = FontWeight.ExtraBold
@@ -377,7 +384,10 @@ private fun AmountInput(
 }
 
 @Composable
-private fun ResultSection(uiState: ConverterUiState) {
+private fun ResultSection(
+    uiState: ConverterUiState,
+    colors: ConverterColors
+) {
     val amount = uiState.amount.toDoubleOrNull()
     val result = uiState.result.toDoubleOrNull()
     val headline = if (result != null) {
@@ -404,7 +414,7 @@ private fun ResultSection(uiState: ConverterUiState) {
     ) {
         Text(
             text = summary,
-            color = textMuted,
+            color = colors.textMuted,
             fontSize = 20.sp,
             lineHeight = 26.sp,
             fontWeight = FontWeight.Bold,
@@ -415,7 +425,7 @@ private fun ResultSection(uiState: ConverterUiState) {
 
         Text(
             text = headline,
-            color = textStrong,
+            color = colors.textStrong,
             fontSize = 45.sp,
             lineHeight = 52.sp,
             fontWeight = FontWeight.ExtraBold,
@@ -431,13 +441,13 @@ private fun ResultSection(uiState: ConverterUiState) {
             Icon(
                 imageVector = Icons.Default.AccessTime,
                 contentDescription = null,
-                tint = textSoft,
+                tint = colors.textSoft,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = rate,
-                color = textSoft,
+                color = colors.textSoft,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -449,6 +459,7 @@ private fun ResultSection(uiState: ConverterUiState) {
 @Composable
 private fun RecentSection(
     history: List<ConversionHistory>,
+    colors: ConverterColors,
     onOpenHistory: () -> Unit
 ) {
     Card(
@@ -456,7 +467,7 @@ private fun RecentSection(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(bottom = 20.dp),
-        colors = CardDefaults.cardColors(containerColor = cardBackground),
+        colors = CardDefaults.cardColors(containerColor = colors.cardBackground),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -471,24 +482,24 @@ private fun RecentSection(
             ) {
                 Text(
                     text = "Recent",
-                    color = textPrimary,
+                    color = colors.textPrimary,
                     fontSize = 25.sp,
                     fontWeight = FontWeight.ExtraBold
                 )
                 Text(
                     text = "See All",
                     modifier = Modifier.clickable(onClick = onOpenHistory),
-                    color = accentPurple,
+                    color = colors.accent,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold
                 )
             }
 
             if (history.isEmpty()) {
-                EmptyHistoryItem()
+                EmptyHistoryItem(colors = colors)
             } else {
                 history.forEach { conversion ->
-                    HistoryItem(conversion = conversion)
+                    HistoryItem(conversion = conversion, colors = colors)
                 }
             }
         }
@@ -496,26 +507,29 @@ private fun RecentSection(
 }
 
 @Composable
-private fun EmptyHistoryItem() {
+private fun EmptyHistoryItem(colors: ConverterColors) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = fieldBackground,
+        color = colors.fieldBackground,
         shape = RoundedCornerShape(20.dp)
     ) {
         Text(
             text = "No conversions yet",
             modifier = Modifier.padding(22.dp),
-            color = textMuted,
+            color = colors.textMuted,
             fontWeight = FontWeight.SemiBold
         )
     }
 }
 
 @Composable
-private fun HistoryItem(conversion: ConversionHistory) {
+private fun HistoryItem(
+    conversion: ConversionHistory,
+    colors: ConverterColors
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = fieldBackground,
+        color = colors.fieldBackground,
         shape = RoundedCornerShape(20.dp)
     ) {
         Row(
@@ -526,7 +540,7 @@ private fun HistoryItem(conversion: ConversionHistory) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${conversion.fromCurrency} to ${conversion.toCurrency}",
-                    color = textPrimary,
+                    color = colors.textPrimary,
                     fontSize = 19.sp,
                     lineHeight = 24.sp,
                     fontWeight = FontWeight.ExtraBold
@@ -534,7 +548,7 @@ private fun HistoryItem(conversion: ConversionHistory) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formatRelativeTimestamp(conversion.timestamp),
-                    color = textMuted,
+                    color = colors.textMuted,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -543,7 +557,7 @@ private fun HistoryItem(conversion: ConversionHistory) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = "${formatMoney(conversion.result)} ${conversion.toCurrency}",
-                    color = textPrimary,
+                    color = colors.textPrimary,
                     fontSize = 20.sp,
                     lineHeight = 24.sp,
                     fontWeight = FontWeight.ExtraBold
@@ -551,7 +565,7 @@ private fun HistoryItem(conversion: ConversionHistory) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "${formatMoney(conversion.amount)} ${conversion.fromCurrency}",
-                    color = textMuted,
+                    color = colors.textMuted,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -595,4 +609,50 @@ private fun formatRelativeTimestamp(timestamp: Long): String {
 private fun isSameDay(first: Calendar, second: Calendar): Boolean {
     return first.get(Calendar.YEAR) == second.get(Calendar.YEAR) &&
         first.get(Calendar.DAY_OF_YEAR) == second.get(Calendar.DAY_OF_YEAR)
+}
+
+private data class ConverterColors(
+    val background: Color,
+    val cardBackground: Color,
+    val fieldBackground: Color,
+    val textPrimary: Color,
+    val textStrong: Color,
+    val textMuted: Color,
+    val textSoft: Color,
+    val icon: Color,
+    val accent: Color,
+    val shadow: Color
+)
+
+@Composable
+private fun converterColors(): ConverterColors {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+    return if (isDark) {
+        ConverterColors(
+            background = Color(0xFF111827),
+            cardBackground = Color(0xFF1F2937),
+            fieldBackground = Color(0xFF2B3546),
+            textPrimary = Color(0xFFF8FAFC),
+            textStrong = Color(0xFFFFFFFF),
+            textMuted = Color(0xFFCBD5E1),
+            textSoft = Color(0xFF94A3B8),
+            icon = Color(0xFFE5E7EB),
+            accent = Color(0xFFA7A1FF),
+            shadow = Color(0x33000000)
+        )
+    } else {
+        ConverterColors(
+            background = Color(0xFFF2F3F7),
+            cardBackground = Color.White,
+            fieldBackground = Color(0xFFF8F9FB),
+            textPrimary = Color(0xFF1F2937),
+            textStrong = Color(0xFF111827),
+            textMuted = Color(0xFF6B7280),
+            textSoft = Color(0xFF9CA3AF),
+            icon = Color(0xFF4B5563),
+            accent = Color(0xFF6757A7),
+            shadow = Color(0x12000000)
+        )
+    }
 }
